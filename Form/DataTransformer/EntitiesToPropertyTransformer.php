@@ -21,17 +21,20 @@ class EntitiesToPropertyTransformer implements DataTransformerInterface
     protected $className;
     /** @var  string */
     protected $textProperty;
+    /** @var  string */
+    protected $primaryKey;
 
     /**
      * @param EntityManager $em
      * @param string $class
      * @param string|null $textProperty
      */
-    public function __construct(EntityManager $em, $class, $textProperty = null)
+    public function __construct(EntityManager $em, $class, $textProperty = null, $primaryKey = 'id')
     {
         $this->em = $em;
         $this->className = $class;
         $this->textProperty = $textProperty;
+        $this->primaryKey = $primaryKey;
     }
 
     /**
@@ -55,7 +58,7 @@ class EntitiesToPropertyTransformer implements DataTransformerInterface
                 ? (string)$entity
                 : $accessor->getValue($entity, $this->textProperty);
 
-            $data[$accessor->getValue($entity, 'id')] = $text;
+            $data[$accessor->getValue($entity, $this->primaryKey)] = $text;
         }
 
         return $data;
@@ -77,7 +80,7 @@ class EntitiesToPropertyTransformer implements DataTransformerInterface
         $entities = $this->em->createQueryBuilder()
             ->select('entity')
             ->from($this->className, 'entity')
-            ->where('entity.id IN (:ids)')
+            ->where('entity.'.$this->primaryKey.' IN (:ids)')
             ->setParameter('ids', $values)
             ->getQuery()
             ->getResult();
